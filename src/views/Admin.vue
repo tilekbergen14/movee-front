@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import { getMovies } from "../api/api";
+import { storeGetMovies, storeCreateMovie, storeDeleteMovie } from "../api/api";
 import Avatar from "primevue/avatar";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
@@ -14,6 +14,10 @@ const loading = ref(false);
 const movies = ref(null);
 const visible = ref(false);
 
+const name = ref("");
+const description = ref("");
+const image = ref(null);
+
 onMounted(() => {
   fetchData();
 });
@@ -21,7 +25,7 @@ onMounted(() => {
 async function fetchData() {
   loading.value = true;
   try {
-    movies.value = await getMovies();
+    movies.value = await storeGetMovies();
   } catch (err) {
     console.log(err);
   } finally {
@@ -29,9 +33,36 @@ async function fetchData() {
   }
 }
 
-const deleteMovie = (id) => {
-  console.log(id);
+async function createMovie() {
+  const fd = new FormData();
+  fd.append("image", image.value);
+  fd.append("name", name.value);
+  fd.append("description", description.value);
+  loading.value = true;
+  try {
+    const response = await storeCreateMovie(fd);
+    console.log(response);
+  } catch (err) {
+    loading.value = false;
+  } finally {
+    loading.value = false;
+  }
+}
+
+const UploadImage = (event) => {
+  image.value = event.target.files[0];
 };
+
+const deleteMovie = async (id) => {
+  try {
+    const response = await storeDeleteMovie(id);
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  } finally {
+  }
+};
+
 const editMovie = (id) => {
   console.log(id);
 };
@@ -86,7 +117,7 @@ const openModal = () => {
         <label for="username">Name</label>
         <InputText
           id="username"
-          v-model="value"
+          v-model="name"
           aria-describedby="username-help"
         />
         <!-- <small id="username-help"
@@ -96,7 +127,7 @@ const openModal = () => {
 
       <div class="flex flex-column gap-2 pt-3">
         <label for="username">Description</label>
-        <Textarea v-model="value" rows="5" cols="30"></Textarea>
+        <Textarea v-model="description" rows="5" cols="30"></Textarea>
         <!-- <small id="username-help">Enter your username to reset your password.</small> -->
       </div>
       <div class="flex flex-column gap-2 pt-3">
@@ -104,7 +135,7 @@ const openModal = () => {
         <InputText
           type="file"
           id="username"
-          v-model="value"
+          @change="UploadImage"
           aria-describedby="username-help"
         />
         <!-- <small id="username-help"
@@ -118,7 +149,7 @@ const openModal = () => {
           severity="secondary"
           @click="visible = false"
         ></Button>
-        <Button type="button" label="Save" @click="visible = false"></Button>
+        <Button type="button" label="Save" @click="createMovie"></Button>
       </div>
     </Dialog>
   </div>

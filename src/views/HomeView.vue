@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import { getMovies } from "../api/api.js";
+import { storeGetMovies } from "../api/api.js";
 import ProgressSpinner from "primevue/progressspinner";
 import Card from "primevue/card";
 import { useRouter } from "vue-router";
@@ -20,7 +20,7 @@ const toMovie = (movie) => {
 async function fetchData() {
   loading.value = true;
   try {
-    movies.value = await getMovies();
+    movies.value = await storeGetMovies();
   } catch (err) {
     console.log(err);
   } finally {
